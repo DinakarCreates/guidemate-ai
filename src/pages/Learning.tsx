@@ -15,7 +15,7 @@ export default function Learning() {
 
   return (
     <AppShell>
-      <PageHeader title="Learning" subtitle="Short, personalized lessons for how you learn." />
+      <PageHeader title="Learning" subtitle="Short, personalized lessons based on how you learn." />
 
       <section className="px-6">
         <div className="glass-card bg-gradient-card p-5">

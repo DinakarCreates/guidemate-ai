@@ -1,13 +1,38 @@
 import { useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Sparkles } from "lucide-react";
+import { supabase } from "@/lib/supabase";
 
 export default function Splash() {
   const nav = useNavigate();
   useEffect(() => {
-    const t = setTimeout(() => nav("/welcome"), 1800);
-    return () => clearTimeout(t);
-  }, [nav]);
+  async function checkUser() {
+    
+    await new Promise((resolve) => setTimeout(resolve, 1800));
+
+    const { data: { user } } = await supabase.auth.getUser();
+
+    console.log("Logged in user:", user);
+
+    if (!user) {
+      nav("/welcome");
+      return;
+    }
+    const { data: profile } = await supabase
+  .from("profiles")
+  .select("onboarding_completed")
+  .eq("id", user.id)
+  .single();
+
+if (profile?.onboarding_completed) {
+  nav("/home");
+} else {
+  nav("/onboarding");
+}
+  }
+
+  checkUser();
+}, [nav]);
 
   return (
     <div className="app-shell items-center justify-center">

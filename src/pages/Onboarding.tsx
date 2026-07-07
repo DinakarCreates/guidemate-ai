@@ -2,6 +2,8 @@ import { useState, useRef, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Send, Sparkles } from "lucide-react";
+import { supabase } from "../lib/supabase";
+
 
 interface Msg { role: "guide" | "user"; text: string; }
 
@@ -19,6 +21,13 @@ export default function Onboarding() {
   const [step, setStep] = useState(0);
   const [input, setInput] = useState("");
   const [typing, setTyping] = useState(false);
+  const [answers, setAnswers] = useState({
+  future_vision: "",
+  current_state: "",
+  strengths: [] as string[],
+  barriers: [] as string[],
+  learning_preference: "",
+});
   const scrollRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -27,22 +36,80 @@ export default function Onboarding() {
     inputRef.current?.focus();
   }, [messages, typing]);
 
-  const send = (text: string) => {
+  const send = async (text: string) => {
     if (!text.trim()) return;
+    const updatedAnswers = { ...answers };
+
+switch (step) {
+  case 0:
+    updatedAnswers.future_vision = text;
+    break;
+
+  case 1:
+    updatedAnswers.current_state = text;
+    break;
+
+  case 2:
+    updatedAnswers.strengths = [text];
+    break;
+
+  case 3:
+    updatedAnswers.barriers = [text];
+    break;
+
+  case 4:
+    updatedAnswers.learning_preference = text;
+    break;
+}
+
+setAnswers(updatedAnswers);
     setMessages((m) => [...m, { role: "user", text }]);
     setInput("");
     setTyping(true);
-    setTimeout(() => {
+    setTimeout(async() => {
       const next = step + 1;
       if (next < script.length) {
         setMessages((m) => [...m, { role: "guide", text: script[next].prompt }]);
         setStep(next);
         setTyping(false);
-      } else {
-        setMessages((m) => [...m, { role: "guide", text: "Thank you. Give me a moment — I'm shaping your reflection." }]);
-        setTyping(false);
-        setTimeout(() => nav("/reflection"), 1400);
-      }
+      }else {
+  setMessages((m) => [
+    ...m,
+    {
+      role: "guide",
+      text: "Thank you. Give me a moment — I'm shaping your reflection."
+    }
+  ]);
+
+  setTyping(false);
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (user) {
+    const { error } = await supabase
+      .from("profiles")
+      .insert({
+        id: user.id,
+        full_name: user.email?.split("@")[0] || "GuideMate User",
+        future_vision: updatedAnswers.future_vision,
+        strengths: updatedAnswers.strengths,
+        barriers: updatedAnswers.barriers,
+        learning_preference: updatedAnswers.learning_preference,
+        current_state: updatedAnswers.current_state,  
+        onboarding_completed: true,
+      });
+
+    if (error) {
+      console.error(error);
+    } else {
+      console.log("Profile saved!");
+    }
+  }
+
+  setTimeout(() => nav("/reflection"), 1400);
+}
     }, 700);
   };
 

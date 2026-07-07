@@ -4,6 +4,8 @@ import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Lightbulb, Brain, MessageCircle, ArrowRight, Clock, Check } from "lucide-react";
 import { lesson } from "@/lib/demoData";
+import { useEffect } from "react";
+import { supabase } from "../lib/supabase";
 
 export default function Learning() {
   const upcoming = [
@@ -12,6 +14,13 @@ export default function Learning() {
     { title: "Empty states that teach", minutes: 7 },
     { title: "Micro-interactions", minutes: 10 },
   ];
+  useEffect(() => {
+    async function testConnection() {
+      const { data, error } = await supabase.from("test_connection").select("*");
+      
+    }
+    testConnection();
+  }, []);
 
   return (
     <AppShell>

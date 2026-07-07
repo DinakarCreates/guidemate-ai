@@ -13,6 +13,9 @@ import Learning from "./pages/Learning";
 import Practice from "./pages/Practice";
 import Profile from "./pages/Profile";
 import NotFound from "./pages/NotFound";
+import Signup from "./pages/Signup";
+import Login from "./pages/Login";
+import ProtectedRoute from "./components/ProtectedRoute";
 
 const queryClient = new QueryClient();
 
@@ -23,17 +26,74 @@ const App = () => (
       <Sonner />
       <BrowserRouter>
         <Routes>
-          <Route path="/" element={<Splash />} />
-          <Route path="/welcome" element={<Welcome />} />
-          <Route path="/onboarding" element={<Onboarding />} />
-          <Route path="/reflection" element={<Reflection />} />
-          <Route path="/roadmap" element={<Roadmap />} />
-          <Route path="/home" element={<Home />} />
-          <Route path="/learning" element={<Learning />} />
-          <Route path="/practice" element={<Practice />} />
-          <Route path="/profile" element={<Profile />} />
-          <Route path="*" element={<NotFound />} />
-        </Routes>
+  <Route path="/" element={<Splash />} />
+
+  <Route path="/signup" element={<Signup />} />
+  <Route path="/login" element={<Login />} />
+  <Route path="/welcome" element={<Welcome />} />
+
+  <Route
+    path="/onboarding"
+    element={
+      <ProtectedRoute>
+        <Onboarding />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route
+    path="/reflection"
+    element={
+      <ProtectedRoute>
+        <Reflection />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route
+    path="/roadmap"
+    element={
+      <ProtectedRoute>
+        <Roadmap />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route
+    path="/home"
+    element={
+      <ProtectedRoute>
+        <Home />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route
+    path="/learning"
+    element={
+      <ProtectedRoute>
+        <Learning />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route
+    path="/practice"
+    element={
+      <ProtectedRoute>
+        <Practice />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route path="/profile" element={<ProtectedRoute>
+        <Profile />
+      </ProtectedRoute>
+    }
+  />
+
+  <Route path="*" element={<NotFound />} />
+</Routes>
       </BrowserRouter>
     </TooltipProvider>
   </QueryClientProvider>

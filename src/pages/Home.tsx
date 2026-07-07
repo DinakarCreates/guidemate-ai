@@ -2,13 +2,32 @@ import { Link } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Dumbbell, Sparkles, Send, TrendingUp, Flame, Clock, ArrowRight } from "lucide-react";
-import { demoUser, roadmap, conversation } from "@/lib/demoData";
-import { useState } from "react";
+import { supabase } from "@/lib/supabase";
+import { conversation, roadmap } from "@/lib/demoData";
+import { useEffect, useState } from "react";
+
 
 export default function Home() {
   const [msgs, setMsgs] = useState(conversation);
+  const [profile, setProfile] = useState(null);
   const [input, setInput] = useState("");
 
+  async function fetchProfile() {
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return;
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", user?.id)
+    .single();
+
+  console.log("PROFILE:", data);
+  console.log("ERROR:", error);
+
+  if (data) {
+    setProfile(data);
+  }
+}
   const send = (e: React.FormEvent) => {
     e.preventDefault();
     if (!input.trim()) return;
@@ -19,16 +38,22 @@ export default function Home() {
     }, 600);
   };
 
+  useEffect(() => {
+  fetchProfile();
+}, []);
+
   return (
     <AppShell>
       <header className="flex items-center justify-between px-6 pb-2 pt-8">
         <div>
-          <p className="text-xs text-muted-foreground">Good morning</p>
-          <h1 className="text-2xl font-bold tracking-tight">{demoUser.name}</h1>
-        </div>
+  <p className="text-xs text-muted-foreground">Good morning</p>
+  <h1 className="text-2xl font-bold tracking-tight">
+    {profile?.full_name || "Mate"}
+  </h1>
+</div>
         <div className="flex items-center gap-2 rounded-full border border-border/60 bg-card px-3 py-1.5 text-xs">
           <Flame className="h-3.5 w-3.5 text-primary" />
-          <span className="font-semibold">{demoUser.streak}</span>
+          <span className="font-semibold">{0}</span>
           <span className="text-muted-foreground">day streak</span>
         </div>
       </header>
@@ -55,10 +80,10 @@ export default function Home() {
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Journey progress</h2>
         <div className="grid grid-cols-3 gap-3">
           {[
-            { label: "Today", value: `${demoUser.minutesToday}m`, icon: Clock },
-            { label: "Lessons", value: demoUser.lessonsCompleted, icon: BookOpen },
-            { label: "Total", value: `${demoUser.totalHours}h`, icon: TrendingUp },
-          ].map((s) => (
+  { label: "Today", value: "0m", icon: Clock },
+  { label: "Lessons", value: "0", icon: BookOpen },
+  { label: "Total", value: "0h", icon: TrendingUp },
+].map((s) => (
             <div key={s.label} className="glass-card p-4 text-center">
               <s.icon className="mx-auto mb-1.5 h-4 w-4 text-primary" />
               <p className="text-lg font-bold">{s.value}</p>

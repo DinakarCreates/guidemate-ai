@@ -1,34 +1,96 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Check, X, ArrowRight, Trophy, RotateCcw } from "lucide-react";
-import { quiz } from "@/lib/demoData";
+import { guideMateBrain } from "@/ai/brain";
+import { generatePractice } from "@/ai/agents/practice";
+import { getTodayStep, getPractice, savePractice } from "@/ai/services/learningService";
 
 export default function Practice() {
+  const [questions, setQuestions] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
   const [i, setI] = useState(0);
   const [picked, setPicked] = useState<number | null>(null);
   const [score, setScore] = useState(0);
   const [done, setDone] = useState(false);
 
-  const q = quiz[i];
+  useEffect(() => {
+  async function loadQuiz() {
+    try {
+      const brain = await guideMateBrain("Today's practice");
+
+      if (!brain?.roadmap) return;
+
+      const step = await getTodayStep(brain.roadmap.id);
+
+      if (!step) return;
+
+      // Check cached practice first
+      const cachedPractice = await getPractice(step.id);
+
+      if (cachedPractice) {
+        console.log("✅ Loaded practice from Supabase");
+        setQuestions(cachedPractice.questions);
+        return;
+      }
+
+      console.log("🧠 Generating new practice...");
+
+      const practice = await generatePractice(
+        step.title,
+        brain.profile
+      );
+
+      // Save for future use
+      await savePractice(step.id, practice);
+
+      setQuestions(practice.questions);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  loadQuiz();
+}, []);
+  const q = questions[i];
+  if (!loading && !q) {
+  return (
+    <AppShell>
+      <div className="flex h-screen items-center justify-center">
+        No practice questions available.
+      </div>
+    </AppShell>
+  );
+}
 
   const choose = (idx: number) => {
     if (picked !== null) return;
     setPicked(idx);
-    if (idx === q.correct) setScore((s) => s + 1);
+    if (idx === q.answer) setScore((s) => s + 1);
   };
 
   const next = () => {
-    if (i + 1 >= quiz.length) setDone(true);
+    if (i + 1 >= questions.length) setDone(true);
     else { setI(i + 1); setPicked(null); }
   };
 
   const reset = () => { setI(0); setPicked(null); setScore(0); setDone(false); };
+  if (loading) {
+  return (
+    <AppShell>
+      <div className="flex h-screen items-center justify-center">
+        Loading practice...
+      </div>
+    </AppShell>
+  );
+}
 
   if (done) {
-    const pct = Math.round((score / quiz.length) * 100);
+    const pct = Math.round((score / questions.length) * 100);
     return (
       <AppShell>
         <PageHeader title="Practice" subtitle="Adaptive quiz complete." />
@@ -38,7 +100,7 @@ export default function Practice() {
               <Trophy className="h-7 w-7 text-primary-foreground" />
             </div>
             <p className="mt-4 text-xs uppercase tracking-widest text-muted-foreground">Your score</p>
-            <p className="mt-1 text-4xl font-bold gradient-text">{score}/{quiz.length}</p>
+            <p className="mt-1 text-4xl font-bold gradient-text">{score}/{questions.length}</p>
             <p className="mt-2 text-sm text-muted-foreground">
               {pct >= 80 ? "Excellent — you've mastered this." : pct >= 50 ? "Good progress — one more pass and it sticks." : "Let's revisit the lesson together."}
             </p>
@@ -74,24 +136,24 @@ export default function Practice() {
 
   return (
     <AppShell>
-      <PageHeader title="Practice" subtitle={`Question ${i + 1} of ${quiz.length}`} />
+      <PageHeader title="Practice" subtitle={`Question ${i + 1} of ${questions.length}`} />
 
       <div className="px-6">
         <div className="mb-6 h-1.5 overflow-hidden rounded-full bg-secondary">
           <div
             className="h-full rounded-full bg-gradient-primary transition-all duration-500"
-            style={{ width: `${((i + (picked !== null ? 1 : 0)) / quiz.length) * 100}%` }}
+            style={{ width: `${((i + (picked !== null ? 1 : 0)) / questions.length) * 100}%` }}
           />
         </div>
 
         <div className="glass-card p-6 animate-fade-in">
           <p className="text-xs font-semibold uppercase tracking-wider text-primary">Question</p>
-          <h2 className="mt-2 text-xl font-semibold leading-snug">{q.q}</h2>
+          <h2 className="mt-2 text-xl font-semibold leading-snug">{q.question}</h2>
 
           <div className="mt-6 space-y-2.5">
             {q.options.map((opt, idx) => {
               const isPicked = picked === idx;
-              const isCorrect = idx === q.correct;
+              const isCorrect = idx === q.answer;
               const showState = picked !== null;
               return (
                 <button
@@ -116,16 +178,14 @@ export default function Practice() {
 
           {picked !== null && (
             <div className="mt-5 rounded-2xl bg-secondary p-4 text-sm text-muted-foreground animate-fade-in">
-              {picked === q.correct
-                ? "Nice — that's the essence of progressive disclosure."
-                : "Not quite. The idea is to match complexity with a user's readiness."}
+              {q.explanation}
             </div>
           )}
         </div>
 
         {picked !== null && (
           <Button onClick={next} size="lg" className="mt-6 w-full rounded-2xl bg-gradient-primary text-primary-foreground btn-glow">
-            {i + 1 >= quiz.length ? "See results" : "Next question"} <ArrowRight className="ml-1 h-4 w-4" />
+            {i + 1 >= questions.length ? "See results" : "Next question"} <ArrowRight className="ml-1 h-4 w-4" />
           </Button>
         )}
       </div>

@@ -1,26 +1,93 @@
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import AppShell from "@/components/AppShell";
 import PageHeader from "@/components/PageHeader";
 import { Button } from "@/components/ui/button";
 import { BookOpen, Lightbulb, Brain, MessageCircle, ArrowRight, Clock, Check } from "lucide-react";
-import { lesson } from "@/lib/demoData";
-import { useEffect } from "react";
+import { guideMateBrain } from "@/ai/brain";
+import { generateLesson } from "@/ai/agents/learning";
+import { getTodayStep,getLesson, saveLesson } from "@/ai/services/learningService";
+import { useEffect, useState } from "react";
 import { supabase } from "../lib/supabase";
 
 export default function Learning() {
+  const [lesson, setLesson] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const nav = useNavigate();
   const upcoming = [
     { title: "Visual hierarchy", minutes: 6, done: true },
     { title: "Progressive disclosure", minutes: 8, active: true },
     { title: "Empty states that teach", minutes: 7 },
     { title: "Micro-interactions", minutes: 10 },
   ];
-  useEffect(() => {
-    async function testConnection() {
-      const { data, error } = await supabase.from("test_connection").select("*");
-      
+
+  function askGuideMateAboutLesson() {
+  nav("/", {
+    state: {
+      openGuideMate: true,
+      prompt: `Explain today's lesson "${lesson.title}" with simple examples.`,
+    },
+  });
+}
+ useEffect(() => {
+  async function loadLesson() {
+    try {
+      const brain = await guideMateBrain("Today's learning");
+
+      if (!brain?.roadmap) return;
+
+      const step = await getTodayStep(brain.roadmap.id);
+
+      if (!step) return;
+
+      // Check cached lesson first
+      const cachedLesson = await getLesson(step.id);
+
+      if (cachedLesson) {
+        console.log("✅ Loaded lesson from Supabase");
+        setLesson(cachedLesson);
+        return;
+      }
+
+      console.log("🧠 Generating new lesson...");
+
+      const aiLesson = await generateLesson(
+        step.title,
+        brain.profile
+      );
+
+      // Save lesson for future use
+      await saveLesson(step.id, aiLesson);
+
+      setLesson(aiLesson);
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setLoading(false);
     }
-    testConnection();
-  }, []);
+  }
+
+  loadLesson();
+}, []);
+
+if (loading) {
+  return (
+    <AppShell>
+      <div className="flex h-screen items-center justify-center">
+        Loading lesson...
+      </div>
+    </AppShell>
+  );
+}
+
+if (!lesson) {
+  return (
+    <AppShell>
+      <div className="flex h-screen items-center justify-center">
+        No lesson available.
+      </div>
+    </AppShell>
+  );
+}
 
   return (
     <AppShell>
@@ -72,7 +139,7 @@ export default function Learning() {
       </section>
 
       <section className="mt-4 px-6">
-        <button className="glass-card flex w-full items-center gap-3 p-4 text-left transition hover:border-primary/40">
+        <button onClick={askGuideMateAboutLesson}className="glass-card flex w-full items-center gap-3 p-4 text-left transition hover:border-primary/40">
           <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/15 text-primary">
             <MessageCircle className="h-5 w-5" />
           </div>
@@ -84,7 +151,7 @@ export default function Learning() {
         </button>
       </section>
 
-      <section className="mt-6 px-6">
+      {false && (<section className="mt-6 px-6">
         <h2 className="mb-3 text-sm font-semibold text-muted-foreground">Up next</h2>
         <div className="glass-card divide-y divide-border/60">
           {upcoming.map((u) => (
@@ -104,7 +171,7 @@ export default function Learning() {
             </div>
           ))}
         </div>
-      </section>
+      </section> )}
 
       <div className="px-6 py-6">
         <Link to="/practice">

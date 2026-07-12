@@ -66,14 +66,22 @@ export async function saveRoadmap(
   for (const week of roadmap.weeks) {
     for (const day of week.days) {
       steps.push({
-        roadmap_id: roadmapId,
-        week: week.week,
-        day: day.day,
-        title: day.title,
-        description: day.description,
-        estimated_minutes: day.estimatedMinutes,
-        status: "pending",
-      });
+  roadmap_id: roadmapId,
+
+  week: week.week,
+  day: day.day,
+
+  // ADD THESE
+  week_title: week.title,
+  week_objective: week.objective,
+  expected_outcome: week.expectedOutcome,
+
+  title: day.title,
+  description: day.description,
+  estimated_minutes: day.estimatedMinutes,
+
+  status: "pending",
+});
     }
   }
 

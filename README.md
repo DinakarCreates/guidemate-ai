@@ -127,13 +127,6 @@ Future features include:
 - 📊 Advanced analytics
 - 🧠 Stronger long-term memory
 
----
-
-# 📸 Screenshots
-
-> Screenshots coming soon.
-
----
 
 # 🌟 Why GuideMate?
 
@@ -150,6 +143,60 @@ It grows with the learner.
 Our vision is to build an AI mentor that helps millions of learners become the best version of themselves.
 
 ---
+# 🚀 Quick Start for Judges
+
+Thank you for evaluating **GuideMate AI**!
+
+To help you experience the application immediately, we've provided a demo account.
+
+## Demo Credentials
+
+**Email:** guideMatejudge@gmail.com
+
+**Password:** 123456789
+
+---
+
+## Experience Flow
+
+### 1. Login
+Use the demo credentials above to log into GuideMate AI.
+
+### 2. Complete AI Onboarding
+Answer a few onboarding questions. GuideMate uses these responses to generate a personalized learning journey.
+
+### 3. AI Roadmap Generation
+Please wait **20–60 seconds** while GuideMate AI generates your personalized roadmap.
+
+During this step, the AI creates:
+- Personalized learning roadmap
+- Weekly objectives
+- Daily lessons
+- Practice plans
+- Learning progression
+
+### 4. Explore the Roadmap
+Navigate through the generated weekly roadmap and review the learning plan.
+
+### 5. Start Learning
+Click **Begin** on today's lesson to generate the day's AI-powered lesson and practice session.
+
+### 6. Complete Practice
+Attempt the generated practice questions to experience the adaptive learning workflow.
+
+### 7. View Progress
+Visit the **Profile** section to explore learner progress and profile information.
+
+---
+
+## Notes
+
+- The first roadmap generation requires a short wait because the AI generates personalized content in real time.
+- All generated content is tailored to the onboarding responses.
+- If AI generation takes a little longer, please allow it to finish before refreshing the page.
+
+Thank you for trying GuideMate AI!
+
 
 # 👨‍💻 Built By
 
@@ -164,3 +211,5 @@ GuideMate AI • 2026
 ## ⭐ Thank you for visiting GuideMate AI!
 
 If you like this project, consider giving it a ⭐ on GitHub.
+
+

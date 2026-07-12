@@ -2,6 +2,33 @@
 
 # Your AI Mentor for Life
 
+## 🐳 Docker Deployment
+
+GuideMate can be containerized for hackathon submission and local production-style testing.
+
+### Build the image
+
+```bash
+docker build \
+  --build-arg VITE_SUPABASE_URL=your_supabase_url \
+  --build-arg VITE_SUPABASE_PUBLISHABLE_KEY=your_supabase_publishable_key \
+  --build-arg VITE_GEMINI_API_KEY=your_gemini_api_key \
+  --build-arg VITE_FIREWORKS_API_KEY=your_fireworks_api_key \
+  -t guidemate:latest .
+```
+
+### Run the container
+
+```bash
+docker run -p 8080:80 --name guidemate guidemate:latest
+```
+
+Then open http://localhost:8080 in your browser.
+
+> The app uses the same Supabase-hosted backend and environment-variable-driven API configuration as the Vercel deployment. No authentication or environment logic was changed.
+
+---
+
 GuideMate AI is a personalized AI learning companion that acts as a long-term mentor instead of a traditional chatbot.
 
 It creates personalized learning roadmaps, generates AI lessons and practice sessions, remembers previous conversations, and continuously adapts to every learner's journey.
